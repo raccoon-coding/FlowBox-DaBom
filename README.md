@@ -14,11 +14,11 @@
 <table align="center">
   <tbody>
     <tr>
-      <td align="center"><a href="https://github.com/raccoon-coding"><img src="https://github.com/user-attachments/assets/6f76c104-2804-42f4-acff-143a9a53987c" width="100px;" alt=""/><br /><sub><b> 팀원: 최민성</b></sub></a><br /></td>
+      <td align="center"><a href="https://github.com/raccoon-coding"><img src="https://github.com/user-attachments/assets/cd54a924-3b11-4ba6-b682-711026407caa" width="100px;" alt=""/><br /><sub><b> 팀원: 최민성</b></sub></a><br /></td>
       <td align="center"><a href="https://github.com/tipsboy"><img src="https://github.com/user-attachments/assets/8ef94525-6a70-491d-9a34-3691697dc0cc" width="100px;" alt=""/><br /><sub><b> 팀원: 양형모</b></sub></a><br /></td>
       <td align="center"><a href="https://github.com/flionme"><img src="https://github.com/user-attachments/assets/f03ffdd5-6948-452b-8c72-c7a8a3136a30" width="100px;" alt=""/><br /><sub><b> 팀원 : 김성인</b></sub></a><br /></td>
       <td align="center"><a href="https://github.com/Hanryang-Kim"><img src="https://github.com/user-attachments/assets/4e31cc63-283a-4d9b-b6b2-eea9c8be586b" width="100px;" alt=""/><br /><sub><b> 팀원 : 김륜환</b></sub></a><br /></td>
-      <td align="center"><a href="https://github.com/kbw07"><img src="https://github.com/user-attachments/assets/cd54a924-3b11-4ba6-b682-711026407caa" width="100px;" alt=""/><br /><sub><b> 팀원 : 강병욱 </b></sub></a><br /></td>
+      <td align="center"><a href="https://github.com/kbw07"><img src="" width="100px;" alt=""/><br /><sub><b> 팀원 : 강병욱 </b></sub></a><br /></td>
     </tr>
   </tbody>
 </table>
@@ -121,6 +121,7 @@
 
 ## 💡 성능 개선
 <a href="https://github.com/beyond-sw-camp/be17-3rd-FlowBox-DaBom/wiki/%EC%84%B1%EB%8A%A5-%EA%B0%9C%EC%84%A0"> 테스트 및 결과</a>
+
 
 
 
