@@ -14,7 +14,7 @@
 <table align="center">
   <tbody>
     <tr>
-      <td align="center"><a href="https://github.com/raccoon-coding"><img src="https://github-production-user-asset-6210df.s3.amazonaws.com/154814009/485905858-30efd325-85e3-49a0-922e-ddd910dd69b5.webp?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20250905%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250905T005145Z&X-Amz-Expires=300&X-Amz-Signature=af3762f9d52dfa31e54ba9a07f4972b5519f52fcd798f152ffdb5926b6f15282&X-Amz-SignedHeaders=host" width="100px;" alt=""/><br /><sub><b> 팀원: 최민성</b></sub></a><br /></td>
+      <td align="center"><a href="https://github.com/raccoon-coding"><img src="https://github.com/user-attachments/assets/6f76c104-2804-42f4-acff-143a9a53987c" width="100px;" alt=""/><br /><sub><b> 팀원: 최민성</b></sub></a><br /></td>
       <td align="center"><a href="https://github.com/tipsboy"><img src="https://github.com/user-attachments/assets/8ef94525-6a70-491d-9a34-3691697dc0cc" width="100px;" alt=""/><br /><sub><b> 팀원: 양형모</b></sub></a><br /></td>
       <td align="center"><a href="https://github.com/flionme"><img src="https://github.com/user-attachments/assets/f03ffdd5-6948-452b-8c72-c7a8a3136a30" width="100px;" alt=""/><br /><sub><b> 팀원 : 김성인</b></sub></a><br /></td>
       <td align="center"><a href="https://github.com/Hanryang-Kim"><img src="https://github.com/user-attachments/assets/4e31cc63-283a-4d9b-b6b2-eea9c8be586b" width="100px;" alt=""/><br /><sub><b> 팀원 : 김륜환</b></sub></a><br /></td>
