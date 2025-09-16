@@ -45,7 +45,7 @@ jobs:
           host: ${{ secrets.EC2_IP }}
           username: test
           password: qwer1234
-          port: 22
+          port: 224
           script: |
             CUR_COLOR=$(kubectl get service spring-service -n cms -o jsonpath='{.spec.selector.ver}' 2>/dev/null || echo "")
             if [ "$CUR_COLOR" = "blue" ]; then
