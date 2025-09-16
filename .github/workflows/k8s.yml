@@ -65,7 +65,7 @@ jobs:
 
             # 헬스체크
             for i in $(seq 1 10); do
-              if kubectl -n cms exec deployment/spring-deployment-$NEXT -- curl -fsS --max-time 3 http://localhost:8080/api/health; then
+              if kubectl -n cms exec deployment/spring-deployment-$NEXT -- curl -fsS --max-time 3 http://10.10.10.105/api/health; then
                 echo "[$NEXT] healthy"
                 break
               fi
