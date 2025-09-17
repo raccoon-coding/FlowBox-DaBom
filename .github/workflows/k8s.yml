@@ -63,6 +63,11 @@ jobs:
             # 롤아웃 대기
             kubectl -n cms rollout status deployment/spring-deployment-$NEXT --timeout=300s
 
+            if [ -n "$NEXT" ]; then
+              kubectl -n cms scale deployment/spring-deployment-$NEXT --replicas=1
+              echo "Scaled down spring-deployment-$ACTIVE"
+            fi
+            
             # 서비스 트래픽 전환
             kubectl -n cms patch service k8s-svc \
               -p "{\"spec\":{\"selector\":{\"type\":\"app\",\"ver\":\"$NEXT\"}}}"
