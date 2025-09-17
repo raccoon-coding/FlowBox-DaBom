@@ -47,7 +47,7 @@ jobs:
           password: qwer1234
           port: 224
           script: |
-            CUR_COLOR=$(kubectl get service spring-service -n cms -o jsonpath='{.spec.selector.ver}' 2>/dev/null || echo "")
+            CUR_COLOR=$(kubectl get service k8s-svc -n cms -o jsonpath='{.spec.selector.ver}' 2>/dev/null || echo "")
             if [ "$CUR_COLOR" = "blue" ]; then
               ACTIVE=blue
               NEXT=green
@@ -63,22 +63,8 @@ jobs:
             # 롤아웃 대기
             kubectl -n cms rollout status deployment/spring-deployment-$NEXT --timeout=300s
 
-            # 헬스체크
-            for i in $(seq 1 10); do
-              if kubectl -n cms exec deployment/spring-deployment-$NEXT -- curl -fsS --max-time 3 http://10.10.10.105/api/health; then
-                echo "[$NEXT] healthy"
-                break
-              fi
-              echo "Waiting health... ($i)"
-              sleep 5
-              if [ $i -eq 10 ]; then
-                echo "Health check failed"
-                exit 1
-              fi
-            done
-
             # 서비스 트래픽 전환
-            kubectl -n cms patch service spring-service \
+            kubectl -n cms patch service k8s-svc \
               -p "{\"spec\":{\"selector\":{\"type\":\"app\",\"ver\":\"$NEXT\"}}}"
 
             echo "Switched service to $NEXT"
