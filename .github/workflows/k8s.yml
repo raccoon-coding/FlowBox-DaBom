@@ -59,21 +59,21 @@ jobs:
             echo "Active: $ACTIVE, Next: $NEXT"
 
             kubectl -n cms set image deployment/spring-deployment-$NEXT container=${{ secrets.DOCKERHUB_USERNAME }}/back:latest
-
-            # 롤아웃 대기
-            kubectl -n cms rollout status deployment/spring-deployment-$NEXT --timeout=300s
-
+            
             if [ -n "$NEXT" ]; then
               kubectl -n cms scale deployment/spring-deployment-$NEXT --replicas=1
-              echo "Scaled down spring-deployment-$ACTIVE"
+              echo "Scaled up spring-deployment-$NEXT"
             fi
+
+            # 롤아웃 대기
+            kubectl -n cms rollout status deployment/spring-deployment-$NEXT
             
             # 서비스 트래픽 전환
             kubectl -n cms patch service k8s-svc \
               -p "{\"spec\":{\"selector\":{\"type\":\"app\",\"ver\":\"$NEXT\"}}}"
 
             echo "Switched service to $NEXT"
-
+            
             # 이전 Deployment 스케일 다운
             if [ -n "$ACTIVE" ]; then
               kubectl -n cms scale deployment/spring-deployment-$ACTIVE --replicas=0
