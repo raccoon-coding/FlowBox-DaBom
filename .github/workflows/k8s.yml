@@ -58,7 +58,7 @@ jobs:
 
             echo "Active: $ACTIVE, Next: $NEXT"
 
-            kubectl -n cms set image deployment/spring-deployment-$NEXT container=${DOCKERHUB_USERNAME}/back:latest
+            kubectl -n cms set image deployment/spring-deployment-$NEXT container=${{ secrets.DOCKERHUB_USERNAME }}/back:latest
 
             # 롤아웃 대기
             kubectl -n cms rollout status deployment/spring-deployment-$NEXT --timeout=300s
