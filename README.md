@@ -1,4 +1,4 @@
-**<h1 align="center">Dabom(FlowBox)  </h1>
+<h1 align="center">Dabom(FlowBox)  </h1>
 <div align="center"> 
  <img src="https://github.com/user-attachments/assets/99a3a5a1-a808-4a5b-9a72-877bafb953b4" width="150"/>
 </div>
@@ -45,7 +45,7 @@
 <a href="https://api.dabomvideo.kro.kr/swagger-ui/index.html"> 기능 명세서 - Swagger-ui </a>
 
 ## 💡 성능 개선
-<a href="https://github.com/beyond-sw-camp/be17-3rd-FlowBox-DaBom/wiki/%EC%84%B1%EB%8A%A5-%EA%B0%9C%EC%84%A0"> 테스트 및 결과</a>
+<a href="https://github.com/beyond-sw-camp/be17-3rd-FlowBox-DaBom/wiki/%EC%84%B1%EB%8A%A5-%EA%B0%9C%EC%84%A0"> 테스트 및 성능 개선 </a>
 
 ---
 
@@ -92,7 +92,6 @@
 ![Vue.js](https://img.shields.io/badge/vue.js-%2335495e.svg?style=for-the-badge&logo=vuedotjs&logoColor=%234FC08D)
 ![Socket.js](https://img.shields.io/badge/Socket.js-black?style=for-the-badge&logo=socket.io&logoColor=white)
 ![pinia](https://img.shields.io/badge/Pinia-ffd859?style=for-the-badge&logoColor=black)
-![NginX](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 ![Axios](https://img.shields.io/badge/axios-671ddf?&style=for-the-badge&logo=axios&logoColor=white)
 ![HTML](https://img.shields.io/badge/HTML-E34F26?style=for-the-badge&logo=html5&logoColor=white)
@@ -117,6 +116,8 @@
 ![AWS S3](https://img.shields.io/badge/Amazon%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
 ![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-FF9900?style=for-the-badge&logo=aws-lambda&logoColor=white)
 ![AWS EC2](https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)
+![AWS API GateWay](https://img.shields.io/badge/AWS%20APIGateWay-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)
+![AWS RDS](https://img.shields.io/badge/AWS%20RDS-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)
 ---
 
 ## 🔧 기술적 선택과 설계 배경
@@ -132,4 +133,3 @@
 4. ex
 5.
 ---
-
