@@ -32,7 +32,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/back:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/back:${{ github.run_number }}
 
   deploy:
     name: deploy
@@ -58,7 +58,7 @@ jobs:
 
             echo "Active: $ACTIVE, Next: $NEXT"
 
-            kubectl -n cms set image deployment/spring-deployment-$NEXT container=${{ secrets.DOCKERHUB_USERNAME }}/back:latest
+            kubectl -n cms set image deployment/spring-deployment-$NEXT container=${{ secrets.DOCKERHUB_USERNAME }}/back:${{ github.run_number }}
             
             if [ -n "$NEXT" ]; then
               kubectl -n cms scale deployment/spring-deployment-$NEXT --replicas=1
