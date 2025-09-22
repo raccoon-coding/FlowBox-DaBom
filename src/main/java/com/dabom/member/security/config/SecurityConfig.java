@@ -39,7 +39,7 @@ public class SecurityConfig {
             "/api/channel/board/**",
             "/api/chat/**",
             "/oauth2/authorization/**",
-            "/api/health"
+            "/api/health",
     };
     private static final String[] SWAGGER_LIST = {"/swagger-ui*/**", "/v3/api-docs/**", "/webjars/**"};
 
