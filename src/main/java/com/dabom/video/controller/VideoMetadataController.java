@@ -44,7 +44,7 @@ public class VideoMetadataController {
                             schema = @Schema(implementation = BaseResponse.class),
                             examples = @ExampleObject(value = SwaggerConstants.VIDEO_METADATA_RESPONSE)))
     })
-    @PatchMapping("/metadata/{videoIdx}")
+//    @PatchMapping("/metadata/{videoIdx}")
     public ResponseEntity<BaseResponse<Integer>> uploadData(@PathVariable Integer videoIdx,
                                                             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                                                                     description = "비디오 메타데이터 정보",
