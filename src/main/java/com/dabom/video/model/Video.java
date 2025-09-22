@@ -61,12 +61,13 @@ public class Video extends BaseEntity {
 
     @Builder
     public Video(String originalFilename, String originalPath, Long originalSize,
-                 String contentType, VideoStatus status, Member channel) {
+                 String contentType, VideoStatus status, Member channel, String savedPath) {
         this.originalFilename = originalFilename;
         this.originalPath = originalPath;
         this.originalSize = originalSize;
         this.contentType = contentType;
         this.videoStatus = status;
+        this.savedPath = savedPath;
         mappingChannel(channel);
     }
 

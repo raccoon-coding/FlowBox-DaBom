@@ -24,6 +24,7 @@ public class VideoS3UploadService {
 
     private static final Long MAX_FILE_SIZE = 1024 * 1024 * 100L;
     private static final String VIDEO_TEMP_PATH = "videos/original/";
+    private static final String SAVED_TEMP_PATH = "encoder/";
 
     private final VideoRepository videoRepository;
     private final MemberRepository memberRepository;
@@ -38,9 +39,12 @@ public class VideoS3UploadService {
 
         // 2. S3 Key 생성 (UUID 기반)
         String s3Key = s3FileManager.generateS3Key(requestDto.originalFilename(), VIDEO_TEMP_PATH);
+        String fileName = s3Key.substring(s3Key.lastIndexOf("/") + 1);
+        String uuid = fileName.substring(0, fileName.lastIndexOf("."));
+        String savedS3Key = SAVED_TEMP_PATH + uuid + "/playlist.m3u8";
 
         // 3. Video Entity 생성
-        Integer videoIdx = createVideoEntity(requestDto, s3Key, channel);
+        Integer videoIdx = createVideoEntity(requestDto, s3Key, channel, savedS3Key);
 
         // 4. Presigned URL 생성
         S3PresignedUrlInformationDto presignedUrlInfo = s3FileManager.createPresignedUrl(s3Key, requestDto.contentType());
@@ -53,12 +57,13 @@ public class VideoS3UploadService {
                 .build();
     }
 
-    private Integer createVideoEntity(PresignedUrlRequestDto requestDto, String s3Key, Member channel) {
+    private Integer createVideoEntity(PresignedUrlRequestDto requestDto, String s3Key, Member channel, String savedS3Key) {
         Video video = Video.builder()
                 .channel(channel)
                 .originalFilename(requestDto.originalFilename())
                 .originalPath(s3Key)
                 .originalSize(requestDto.fileSize())
+                .savedPath(savedS3Key)
                 .status(VideoStatus.UPLOADING)
                 .contentType(requestDto.contentType())
                 .build();
