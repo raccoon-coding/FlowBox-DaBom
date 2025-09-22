@@ -35,6 +35,9 @@ public class SubscribeController {
     @GetMapping
     public ResponseEntity<BaseResponse<List<MemberInfoResponseDto>>> subList(
             @AuthenticationPrincipal MemberDetailsDto dto) {
+        if (dto == null) {
+            return null;
+        }
         List<MemberInfoResponseDto> subscribedChannels = subscribeService.sublist(dto.getIdx());
 
         return ResponseEntity.ok(BaseResponse.of(subscribedChannels, HttpStatus.OK));
