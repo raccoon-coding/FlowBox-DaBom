@@ -58,7 +58,7 @@ public class VideoMetadataController {
 
         Integer i = videoService.mappingMetadata(requestDto);
 
-        videoS3EncodingService.encode(videoIdx);
+//        videoS3EncodingService.encode(videoIdx);
 
         return ResponseEntity.ok(BaseResponse.of(i, HttpStatus.OK));
     }

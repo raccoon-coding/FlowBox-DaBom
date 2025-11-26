@@ -39,6 +39,7 @@ public class SecurityConfig {
             "/api/channel/board/**",
             "/api/chat/**",
             "/oauth2/authorization/**",
+            "/api/health"
     };
     private static final String[] SWAGGER_LIST = {"/swagger-ui*/**", "/v3/api-docs/**", "/webjars/**"};
 
@@ -56,7 +57,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
         configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173"
+                frontServer
         ));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
