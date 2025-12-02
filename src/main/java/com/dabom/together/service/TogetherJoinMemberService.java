@@ -4,6 +4,7 @@ import com.dabom.member.exception.MemberException;
 import com.dabom.member.model.entity.Member;
 import com.dabom.member.repository.MemberRepository;
 import com.dabom.member.security.dto.MemberDetailsDto;
+import com.dabom.s3.S3UrlBuilder;
 import com.dabom.together.exception.TogetherException;
 import com.dabom.together.model.dto.response.TogetherInfoResponseDto;
 import com.dabom.together.model.dto.request.TogetherJoinWithCodeRequestDto;
@@ -12,6 +13,11 @@ import com.dabom.together.model.entity.Together;
 import com.dabom.together.model.entity.TogetherJoinMember;
 import com.dabom.together.repository.TogetherJoinMemberRepository;
 import com.dabom.together.repository.TogetherRepository;
+import com.dabom.video.exception.VideoException;
+import com.dabom.video.exception.VideoExceptionType;
+import com.dabom.video.model.Video;
+import com.dabom.video.repository.VideoRepository;
+import com.dabom.video.service.VideoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.dabom.member.exception.MemberExceptionType.MEMBER_NOT_FOUND;
 import static com.dabom.together.exception.TogetherExceptionType.*;
@@ -32,6 +40,8 @@ public class TogetherJoinMemberService {
     private final TogetherJoinMemberRepository togetherJoinMemberRepository;
     private final TogetherRepository togetherRepository;
     private final MemberRepository memberRepository;
+    private final VideoRepository videoRepository;
+    private final S3UrlBuilder s3UrlBuilder;
 
     @Transactional
     public TogetherInfoResponseDto joinNewTogetherMember(Integer togetherIdx, MemberDetailsDto memberDetailsDto) {
@@ -52,7 +62,12 @@ public class TogetherJoinMemberService {
                 .isDelete(false)
                 .build();
         validTogetherAndSave(entity, together);
-        return TogetherInfoResponseDto.toDto(together);
+        Integer videoIdx = extractVideoIdx(together.getVideoUrl());
+        Video targetVideo = videoRepository.findById(videoIdx)
+                .orElseThrow(() -> new VideoException(VideoExceptionType.VIDEO_NOT_FOUND));
+        String videoUrl = s3UrlBuilder.buildPublicUrl(targetVideo.getSavedPath());
+
+        return TogetherInfoResponseDto.toDto(together, videoUrl);
     }
 
     public TogetherInfoResponseDto joinTogetherMember(Integer togetherIdx, MemberDetailsDto memberDetailsDto) {
@@ -61,8 +76,12 @@ public class TogetherJoinMemberService {
         TogetherJoinMember joinMember =
                 togetherJoinMemberRepository.findByMemberAndTogetherAndIsDeleteFalse(member, together)
                         .orElseThrow(() -> new TogetherException(NOT_ACCEPT_MEMBER));
+        Integer videoIdx = extractVideoIdx(together.getVideoUrl());
+        Video targetVideo = videoRepository.findById(videoIdx)
+                .orElseThrow(() -> new VideoException(VideoExceptionType.VIDEO_NOT_FOUND));
+        String videoUrl = s3UrlBuilder.buildPublicUrl(targetVideo.getSavedPath());
 
-        return TogetherInfoResponseDto.toDtoInJoin(together, member);
+        return TogetherInfoResponseDto.toDtoInJoin(together, member, videoUrl);
     }
 
     @Transactional
@@ -79,7 +98,13 @@ public class TogetherJoinMemberService {
 
         TogetherJoinMember entity = toEntity(together, member);
         validTogetherAndSave(entity, together);
-        return TogetherInfoResponseDto.toDto(together);
+
+        Integer videoIdx = extractVideoIdx(together.getVideoUrl());
+        Video targetVideo = videoRepository.findById(videoIdx)
+                .orElseThrow(() -> new VideoException(VideoExceptionType.VIDEO_NOT_FOUND));
+        String videoUrl = s3UrlBuilder.buildPublicUrl(targetVideo.getSavedPath());
+
+        return TogetherInfoResponseDto.toDto(together, videoUrl);
     }
 
     public TogetherListResponseDto getTogethersFromMember(MemberDetailsDto memberDetailsDto) {
@@ -131,7 +156,13 @@ public class TogetherJoinMemberService {
             togetherRepository.save(together);
             togetherJoinMemberRepository.save(togetherJoinMember);
         }
-        return TogetherInfoResponseDto.toDto(together);
+
+        Integer videoIdx = extractVideoIdx(together.getVideoUrl());
+        Video targetVideo = videoRepository.findById(videoIdx)
+                .orElseThrow(() -> new VideoException(VideoExceptionType.VIDEO_NOT_FOUND));
+        String videoUrl = s3UrlBuilder.buildPublicUrl(targetVideo.getSavedPath());
+
+        return TogetherInfoResponseDto.toDto(together, videoUrl);
     }
 
     private TogetherJoinMember toEntity(Together together, Member member) {
@@ -151,5 +182,18 @@ public class TogetherJoinMemberService {
             return;
         }
         throw new TogetherException(MAX_TOGETHER_MEMBER);
+    }
+
+    private Integer extractVideoIdx(String url) {
+        if (url == null) return null;
+
+        // 숫자만 추출 (정규식)
+        Matcher matcher = Pattern.compile("\\d+").matcher(url);
+
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group());
+        }
+
+        return null; // 숫자가 없을 경우
     }
 }

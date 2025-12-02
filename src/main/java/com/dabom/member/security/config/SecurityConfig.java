@@ -41,7 +41,15 @@ public class SecurityConfig {
             "/oauth2/authorization/**",
             "/api/health"
     };
-    private static final String[] SWAGGER_LIST = {"/swagger-ui*/**", "/v3/api-docs/**", "/webjars/**"};
+
+    private static final String[] SWAGGER_LIST = {
+            "/api/swagger-ui.html",
+            "/api/swagger-ui/**",
+            "/api/v3/api-docs",
+            "/api/v3/api-docs/**",
+            "/api/swagger-resources/**",
+            "/api/webjars/**"
+    };
 
     @Value("${websocket.allowed-origin}")
     private String frontServer;

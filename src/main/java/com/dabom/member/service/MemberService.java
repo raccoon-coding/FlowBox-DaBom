@@ -14,6 +14,7 @@ import com.dabom.member.model.entity.Member;
 import com.dabom.member.repository.MemberRepository;
 import com.dabom.member.security.dto.MemberDetailsDto;
 import com.dabom.member.utils.JwtUtils;
+import com.dabom.s3.S3UrlBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,6 +39,7 @@ public class MemberService {
     private final PasswordEncoder encoder;
     private final ImageService imageService;
     private final ImageRepository imageRepository;
+    private final S3UrlBuilder s3UrlBuilder;
 
     @Transactional
     public void signUpMember(MemberSignupRequestDto dto) {
@@ -196,14 +198,13 @@ public class MemberService {
                     .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
 
             if (member.getProfileImage() == null) {
-                String defaultProfileUrl = "/Image/Dabompng.png";
-                return defaultProfileUrl;
+                return s3UrlBuilder.buildPublicUrl("assets/dabom2-B6zSgMwL.png");
             }
             return imageService.find(member.getProfileImage().getIdx());
 
         } catch (Exception e) {
 
-            return "/Image/Dabompng.png"; // 기본 이미지 반환
+            return s3UrlBuilder.buildPublicUrl("assets/dabom2-B6zSgMwL.png");
         }
     }
 
@@ -236,8 +237,7 @@ public class MemberService {
         Member member = repository.findById(memberIdx)
                 .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
         if (member.getBannerImage() == null) {
-            String defaultProfileUrl = "/Image/Dabompng.png";
-            return defaultProfileUrl;
+            return s3UrlBuilder.buildPublicUrl("assets/banner-VfSSB1v3.png");
         }
         return imageService.find(member.getBannerImage().getIdx());
     }

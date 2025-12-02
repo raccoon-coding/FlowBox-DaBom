@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class S3UrlBuilder {
 
-    public static final String S3_BASE_URL = "https://%s.s3.%s.amazonaws.com/%s";
+    public static final String S3_BASE_URL = "https://s3.%s.amazonaws.com/%s/%s";
 
     @Value("${websocket.allowed-origin}")
     private String frontServerAddress;
@@ -17,6 +17,6 @@ public class S3UrlBuilder {
 
     public String buildPublicUrl(String s3Key) {
 //        return String.format("%s/%s", frontServerAddress, s3Key);
-        return String.format(S3_BASE_URL, bucketName, region, s3Key);
+        return String.format(S3_BASE_URL, region, bucketName, s3Key);
     }
 }
