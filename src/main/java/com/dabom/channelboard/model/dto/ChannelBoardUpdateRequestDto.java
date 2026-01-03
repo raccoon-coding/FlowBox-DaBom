@@ -1,6 +1,5 @@
 package com.dabom.channelboard.model.dto;
 
-
 import com.dabom.channelboard.model.entity.ChannelBoard;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -28,10 +27,4 @@ public class ChannelBoardUpdateRequestDto {
                 .contents(contents)
                 .build();
     }
-
-    public ChannelBoard softDelete(ChannelBoard entity) {
-        entity.setIsDeleted(true);
-        return entity;
-    }
 }
-

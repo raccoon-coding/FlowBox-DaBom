@@ -1,6 +1,5 @@
 package com.dabom.channelboard.service;
 
-
 import com.dabom.boardcomment.model.entity.BoardComment;
 import com.dabom.boardcomment.repository.BoardCommentRepository;
 import com.dabom.channelboard.exception.ChannelBoardException;
@@ -32,9 +31,7 @@ public class ChannelBoardService {
     private final MemberRepository memberRepository;
     private final BoardCommentRepository boardCommentRepository;
 
-    public Integer register(ChannelBoardRegisterRequestDto dto
-            , MemberDetailsDto memberDetailsDto) {
-
+    public Integer register(ChannelBoardRegisterRequestDto dto, MemberDetailsDto memberDetailsDto) {
         Member memberIdx = memberRepository.findById(memberDetailsDto.getIdx()).
                 orElseThrow(() -> new MemberException(MemberExceptionType.MEMBER_NOT_FOUND));
 
@@ -42,22 +39,9 @@ public class ChannelBoardService {
         return result.getIdx();
     }
 
-    public SliceBaseResponse<ChannelBoardReadResponseDto> list(
-            Integer page, Integer size, String sort, String name,MemberDetailsDto memberDetailsDto) {
+    public SliceBaseResponse<ChannelBoardReadResponseDto> list(Integer page, Integer size, String sort, String name, MemberDetailsDto memberDetailsDto) {
         Pageable pageable = PageRequest.of(page, size);
-        Slice<ChannelBoard> channelBoardSlice;
-
-        switch (sort) {
-            case "latest":
-                channelBoardSlice = channelBoardRepository.findAllByChannelNameAndIsDeletedFalseOrderByIdxDesc(
-                        name, pageable);
-                break;
-            case "oldest":
-            default:
-                channelBoardSlice = channelBoardRepository.findAllByChannelNameAndIsDeletedFalseOrderByIdxAsc(
-                        name, pageable);
-                break;
-        }
+        Slice<ChannelBoard> channelBoardSlice = getSortBoardSlice(sort, name, pageable);
 
         List<ChannelBoardReadResponseDto> content = channelBoardSlice.getContent()
                 .stream()
@@ -68,24 +52,26 @@ public class ChannelBoardService {
                 .toList();
 
         Long totalCount = channelBoardRepository.countByChannelNameAndIsDeletedFalse(name);
-        return new SliceBaseResponse<ChannelBoardReadResponseDto>(content, channelBoardSlice.hasNext(), totalCount);
+        return new SliceBaseResponse<>(content, channelBoardSlice.hasNext(), totalCount);
     }
 
     public ChannelBoardReadResponseDto read(Integer idx,  MemberDetailsDto memberDetailsDto) {
         Optional<ChannelBoard> result = channelBoardRepository.findById(idx);
+
         if (result.isPresent()) {
             ChannelBoard board = result.get();
             Long commentCount = channelBoardRepository.countCommentsByBoardIdx(board.getIdx());
             return ChannelBoardReadResponseDto.fromWithCommentCount(board, commentCount, memberDetailsDto);
         } else {
-            throw new ChannelBoardException(ChannelBoardExceptionType.BOARD_NOT_FOUND);        }
+            throw new ChannelBoardException(ChannelBoardExceptionType.BOARD_NOT_FOUND);
+        }
     }
 
     public Integer update(ChannelBoardUpdateRequestDto dto) {
         ChannelBoard result = channelBoardRepository.findById(dto.toEntity().getIdx())
                 .orElseThrow(() -> new ChannelBoardException(ChannelBoardExceptionType.BOARD_NOT_FOUND));
 
-        result.update(dto.getTitle(),dto.getContents());
+        result.update(dto.getTitle(), dto.getContents());
 
         return channelBoardRepository.save(result).getIdx();
     }
@@ -95,16 +81,26 @@ public class ChannelBoardService {
 
         if (result.isPresent()) {
             ChannelBoard board = result.get();
-            ChannelBoardUpdateRequestDto dto = new ChannelBoardUpdateRequestDto();
-            ChannelBoard deleteBoard = dto.softDelete(board);
-            channelBoardRepository.save(deleteBoard);
+            board.delete();
+            channelBoardRepository.save(board);
 
             List<BoardComment> boardComments = boardCommentRepository.findByChannelBoard_Idx(idx);
             boardComments.forEach(BoardComment ::delete);
             boardCommentRepository.saveAll(boardComments);
-
         } else {
             throw new ChannelBoardException(ChannelBoardExceptionType.BOARD_NOT_FOUND);
+        }
+    }
+
+    private Slice<ChannelBoard> getSortBoardSlice(String sort, String name, Pageable pageable) {
+        switch (sort) {
+            case "latest":
+                return channelBoardRepository.findAllByChannelNameAndIsDeletedFalseOrderByIdxDesc(
+                        name, pageable);
+            case "oldest":
+            default:
+                return channelBoardRepository.findAllByChannelNameAndIsDeletedFalseOrderByIdxAsc(
+                        name, pageable);
         }
     }
 }

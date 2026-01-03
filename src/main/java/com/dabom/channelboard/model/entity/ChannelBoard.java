@@ -59,4 +59,7 @@ public class ChannelBoard extends BaseEntity {
         this.likesCount = this.likesCount + 1;
     }
 
+    public void delete() {
+        this.isDeleted = true;
+    }
 }

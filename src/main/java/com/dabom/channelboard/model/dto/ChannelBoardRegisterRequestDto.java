@@ -1,6 +1,5 @@
 package com.dabom.channelboard.model.dto;
 
-
 import com.dabom.channelboard.model.entity.ChannelBoard;
 import com.dabom.member.model.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
