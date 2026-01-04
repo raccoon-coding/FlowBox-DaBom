@@ -17,14 +17,11 @@ import java.security.Principal;
 @Controller
 @RequiredArgsConstructor
 public class StompChatController {
-
     private final SimpMessagingTemplate template;
     private final ChatService chatService;
 
     @MessageMapping(value = "/chat/send")
-    public void message(@Payload ChatMessageDto message,
-                        Principal principal) {
-
+    public void message(@Payload ChatMessageDto message, Principal principal) {
         log.info("Received message payload: {}", message);
         log.info("Full ChatMessageDto received from frontend: {}", message.toString());
 
@@ -32,10 +29,6 @@ public class StompChatController {
         MemberDetailsDto memberDetailsDto = (MemberDetailsDto) authentication.getPrincipal();
 
         ChatMessageDto savedMessage = chatService.sendMessage(message, memberDetailsDto);
-
-        System.out.println(message.getRecipientIdx());
-        System.out.println(message.getSenderIdx());
-
 
         template.convertAndSendToUser(
                 savedMessage.getRecipientIdx().toString(),

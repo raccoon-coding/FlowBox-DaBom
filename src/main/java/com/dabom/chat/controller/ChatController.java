@@ -49,6 +49,7 @@ public class ChatController {
             @AuthenticationPrincipal MemberDetailsDto memberDetailsDto, @PathVariable Integer videoIdx) {
         Integer member1Idx = memberDetailsDto.getIdx();
         long chatRoomId = chatService.createRoom(member1Idx, videoIdx);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.of(chatRoomId, HttpStatus.CREATED, "chatroomId"));
     }
 
@@ -61,15 +62,13 @@ public class ChatController {
     })
     @GetMapping("/list")
     public ResponseEntity<BaseResponse<ChatListResponseWrapperDto>> list( @AuthenticationPrincipal MemberDetailsDto memberDetailsDto) {
-        Integer memberidx = memberDetailsDto.getIdx();
-        System.out.println(memberidx);
-        List<ChatRoomListResponseDto> chatRooms = chatService.getList(memberidx);
+        Integer memberIdx = memberDetailsDto.getIdx();
+        List<ChatRoomListResponseDto> chatRooms = chatService.getList(memberIdx);
 
         ChatListResponseWrapperDto response = ChatListResponseWrapperDto.builder()
-                .currentMemberIdx(memberidx)
+                .currentMemberIdx(memberIdx)
                 .chatRooms(chatRooms)
                 .build();
-
         return ResponseEntity.ok(BaseResponse.of(response, HttpStatus.OK));
     }
 
@@ -87,8 +86,8 @@ public class ChatController {
             @RequestParam(defaultValue = "20") int size,
             Principal principal) {
         Integer memberIdx = chatService.getMember(principal);
-        System.out.println(memberIdx);
         SliceBaseResponse<ChatRoomReadResponseDto> result = chatService.readRoom(roomIdx, memberIdx, page, size);
+
         return ResponseEntity.ok(BaseResponse.of(result, HttpStatus.OK));
     }
 

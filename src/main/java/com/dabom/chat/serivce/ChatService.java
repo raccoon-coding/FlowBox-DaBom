@@ -5,7 +5,6 @@ import com.dabom.chat.exception.ChatExceptionType;
 import com.dabom.chat.model.dto.ChatMessageDto;
 import com.dabom.chat.model.dto.ChatRoomListResponseDto;
 import com.dabom.chat.model.dto.ChatRoomReadResponseDto;
-import com.dabom.chat.model.dto.ChatRoomRegisterRequestDto;
 import com.dabom.chat.model.entity.Chat;
 import com.dabom.chat.model.entity.ChatRoom;
 import com.dabom.chat.repository.ChatRepository;
@@ -17,12 +16,13 @@ import com.dabom.member.security.dto.MemberDetailsDto;
 import com.dabom.video.model.Video;
 import com.dabom.video.repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
@@ -39,48 +39,42 @@ public class ChatService {
     private final VideoRepository videoRepository;
 
     public long createRoom(Integer memberIdx, Integer videoIdx) {
-
         Member member1 = memberRepository.findById(memberIdx)
                 .orElseThrow(() -> new ChatException(ChatExceptionType.MEMBER_NOT_FOUND));
         Video video = videoRepository.findById(videoIdx)
                 .orElseThrow(() -> new ChatException(ChatExceptionType.MEMBER_NOT_FOUND));
         Member member2 = video.getChannel();
-        if (member1.getIdx().equals(member2.getIdx())) {
-            throw new ChatException(ChatExceptionType.CANNOT_CHAT_WITH_SELF);
+
+        Long existingRoom = checkRoomExist(member1, member2);
+        if (existingRoom != null) {
+            return existingRoom;
         }
 
-        Optional<ChatRoom> existingRoom = chatRoomRepository.findByMember1AndMember2OrMember2AndMember1(member1, member2, member1, member2);
-        if (existingRoom.isPresent()) {
-            return existingRoom.get().getIdx();
-        }
-
-        ChatRoomRegisterRequestDto dto = new ChatRoomRegisterRequestDto(member1,member2);
-        ChatRoom result = chatRoomRepository.save(dto.toEntity());
+        ChatRoom result = saveNewChatRoom(member1, member2);
         return result.getIdx();
     }
 
     public Integer getMember(Principal principal) {
-        if (!(principal instanceof UsernamePasswordAuthenticationToken)) {
+        if (!(principal instanceof UsernamePasswordAuthenticationToken authToken)) {
             throw new ChatException(ChatExceptionType.UNAUTHORIZED_ACCESS);
         }
-        UsernamePasswordAuthenticationToken authToken = (UsernamePasswordAuthenticationToken) principal;
-        if (!(authToken.getPrincipal() instanceof MemberDetailsDto)) {
-            throw new ChatException(ChatExceptionType.UNAUTHORIZED_ACCESS);
-        }
-        MemberDetailsDto memberDetails = (MemberDetailsDto) authToken.getPrincipal();
-        return memberDetails.getIdx();
 
+        if (!(authToken.getPrincipal() instanceof MemberDetailsDto memberDetails)) {
+            throw new ChatException(ChatExceptionType.UNAUTHORIZED_ACCESS);
+        }
+
+        return memberDetails.getIdx();
     }
 
     public List<ChatRoomListResponseDto> getList(Integer memberIdx) {
-        List<ChatRoom> chatRooms = chatRoomRepository.findAllByMemberIdxAndIsDeleted(memberIdx);
+        List<ChatRoom> chatRooms = chatRoomRepository.findAllByMemberIdxAndIsNotDeleted(memberIdx);
         return chatRooms.stream()
                 .map(chatRoom -> {
-                    Optional<Chat> lastChat = chatRepository.findTopByRoomIdxAndIsDeletedOrderByCreatedAtDesc(chatRoom.getIdx());
-                    long unreadCount = chatRepository.countUnreadByRoomIdxAndMemberIdx(chatRoom.getIdx(), memberIdx);
+                    Optional<Chat> lastChat = chatRepository.findTopByRoomIdxAndIsNotDeletedOrderByCreatedAtDesc(chatRoom.getIdx());
+                    Long unreadCount = chatRepository.countUnreadByRoomIdxAndMemberIdx(chatRoom.getIdx(), memberIdx);
 
                     // 상대방 정보 찾기
-                    Member opponent = chatRoom.getMember1().getIdx().equals(memberIdx) ? chatRoom.getMember2() : chatRoom.getMember1();
+                    Member opponent = findOpponent(memberIdx, chatRoom);
 
                     return ChatRoomListResponseDto.fromEntity(chatRoom, lastChat.orElse(null), unreadCount,
                             //임시
@@ -101,24 +95,16 @@ public class ChatService {
 
         // 페이징된 메시지 목록 조회
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Slice<Chat> chatSlice = chatRepository.findByRoomIdxAndIsDeleted(roomIdx, pageable);
+        Slice<Chat> chatSlice = chatRepository.findByRoomIdxAndIsNotDeleted(roomIdx, pageable);
 
         // 메시지를 ChatMessageDto로 변환
-        List<ChatMessageDto> chatList = chatSlice.getContent().stream()
-                .map(ChatMessageDto::fromEntity)
-                .collect(Collectors.toList());
-
-        // 읽음 처리
-        chatSlice.getContent().stream()
-                .filter(chat -> !chat.getIsRead() && chat.getRecipient().getIdx().equals(memberIdx))
-                .forEach(Chat::markAsRead);
-        chatRepository.saveAll(chatSlice.getContent());
+        List<ChatMessageDto> chatList = readMessageList(memberIdx, chatSlice);
 
         // ChatRoomReadResponseDto 생성
         ChatRoomReadResponseDto responseDto = ChatRoomReadResponseDto.fromEntity(chatRoom, chatList);
 
         // 전체 메시지 수 조회
-        long totalCount = chatRepository.countByRoomIdxAndIsDeleted(roomIdx);
+        Long totalCount = chatRepository.countByRoomIdxAndIsNotDeleted(roomIdx);
 
         // SliceBaseResponse로 반환
         return new SliceBaseResponse<>(
@@ -135,8 +121,7 @@ public class ChatService {
         Member sender = memberRepository.findById(userDetails.getIdx())
                 .orElseThrow(() -> new ChatException(ChatExceptionType.MEMBER_NOT_FOUND));
 
-        Member recipient = chatRoom.getMember1().getIdx().equals(sender.getIdx()) ? chatRoom.getMember2() : chatRoom.getMember1();
-
+        Member recipient = findRecipient(chatRoom, sender);
         Chat chatToSave = Chat.builder()
                 .message(messageDto.getMessage())
                 .room(chatRoom)
@@ -148,5 +133,56 @@ public class ChatService {
         return ChatMessageDto.fromEntity(savedChat);
     }
 
+    private List<ChatMessageDto> readMessageList(Integer memberIdx, Slice<Chat> chatSlice) {
+        List<ChatMessageDto> chatList = chatSlice.getContent().stream()
+                .map(ChatMessageDto::fromEntity)
+                .collect(Collectors.toList());
 
+        // 읽음 처리
+        chatSlice.getContent().stream()
+                .filter(chat -> !chat.getIsRead() && chat.getRecipient().getIdx().equals(memberIdx))
+                .forEach(Chat::markAsRead);
+        chatRepository.saveAll(chatSlice.getContent());
+        return chatList;
+    }
+
+    private Member findOpponent(Integer memberIdx, ChatRoom chatRoom) {
+        if (chatRoom.getMember1().getIdx().equals(memberIdx)) {
+            return chatRoom.getMember2();
+        } else {
+            return chatRoom.getMember1();
+        }
+    }
+
+    private Member findRecipient(ChatRoom chatRoom, Member sender) {
+        Member recipient;
+        if (chatRoom.getMember1().getIdx().equals(sender.getIdx())) {
+            recipient = chatRoom.getMember2();
+        } else {
+            recipient = chatRoom.getMember1();
+        }
+        return recipient;
+    }
+
+    private Long checkRoomExist(Member member1, Member member2) {
+        checkSameMember(member1, member2);
+
+        Optional<ChatRoom> existingRoom = chatRoomRepository.findByMember1AndMember2OrMember2AndMember1(member1, member2, member1, member2);
+        return existingRoom.map(ChatRoom::getIdx).orElse(null);
+    }
+
+    private void checkSameMember(Member member1, Member member2) {
+        if (member1.getIdx().equals(member2.getIdx())) {
+            throw new ChatException(ChatExceptionType.CANNOT_CHAT_WITH_SELF);
+        }
+    }
+
+    private ChatRoom saveNewChatRoom(Member member1, Member member2) {
+        ChatRoom createRoom = ChatRoom.builder()
+                .member1(member1)
+                .member2(member2)
+                .build();
+
+        return chatRoomRepository.save(createRoom);
+    }
 }

@@ -14,8 +14,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom,Long> {
     @Query("SELECT cr FROM ChatRoom cr " +
             "WHERE (cr.member1.idx = :memberIdx OR cr.member2.idx = :memberIdx) " +
             "AND cr.isDeleted = false")
-    List<ChatRoom> findAllByMemberIdxAndIsDeleted(@Param("memberIdx") Integer memberIdx);
+    List<ChatRoom> findAllByMemberIdxAndIsNotDeleted(@Param("memberIdx") Integer memberIdx);
     Optional<ChatRoom> findByMember1AndMember2OrMember2AndMember1(Member member1, Member member2, Member member3, Member member4);
-
-
 }
