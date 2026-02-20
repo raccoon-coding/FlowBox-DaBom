@@ -6,10 +6,6 @@
 프로젝트명 '다봄' 은 **'다'** 같이 **'본다'** 는 동시 시청의 핵심 기능과 새로운 디지털 공동체 문화가
 **'봄'** 처럼 새롭게 시작된다는 의미를 동시에 담고 있습니다.
 
-
-
-
-
 ## 🫂 팀원 소개
 <table align="center">
   <tbody>
@@ -49,57 +45,127 @@
 
 ---
 
-## ✨ 주요 기능
+### 핵심 기여 (담당 도메인 중심)
+**인증/인가 (Member)**
+- JWT + Refresh Token 구조로 전환해 세션 저장소 의존도를 제거
+- **HTTP-Only Cookie** 저장 방식으로 보안 강화
+- Access/Refresh가 함께 전달되는 특성을 활용해 **재발급 통신 단축**
 
-### 💬 실시간 1:1 채팅 (DM)
-- WebSocket 기반 실시간 개인 메시징
-- 사용자 간 즉시 소통 가능
+<img src="images/Dabom%20Login.gif" width="700" alt="Dabom Login GIF"/>
 
-### 🎭 Together 기능 (동시 시청)
-- 방장이 방을 생성하고 영상 재생 제어
-- 방 참가자들과 동기화된 영상 시청 환경
-- 실시간 채팅으로 함께 소통하며 시청
-- WebSocket 기반 실시간 동기화
+**실시간 같이보기 (Together)**
+- STOMP 기반 WebSocket에서 **채팅/제어 이벤트를 분리 구독**하도록 설계
+- 방장 제어 이벤트가 모든 시청자에게 동기화되도록 처리
 
-### 📹 비디오 업로드 & 스트리밍
-- 사용자 영상 업로드 지원
-- FFmpeg를 통한 HLS 형식 변환
-- AWS S3 기반 안정적인 스토리지
-- AWS Lambda를 활용한 서버리스 비디오 처리
+<img src="images/Dabom%20Together.gif" width="700" alt="Dabom Together GIF"/>
 
-## 🛠 기술 스택
+### 성과
+- 인증/인가 플로우를 단순화해 **보안성과 효율성 동시 확보**
+- N+1 개선 및 반정규화로 **응답 시간 약 20% 감소**
+- 구독 분리로 **실시간 서비스 안정성** 강화
 
-### Backend
-- **실시간 통신**: WebSocket
-- **비디오 처리**: FFmpeg
-- **클라우드**: AWS (S3, Lambda)
-- **스트리밍**: HLS (HTTP Live Streaming)
+---
+# 🌱 제가 담당한 핵심 개발 영역 (Backend)
 
-### Core Features
-- **동시 시청**: 실시간 영상 동기화
-- **채팅 시스템**: 1:1 DM + 그룹 채팅
-- **비디오 스트리밍**
+## 1️⃣ Member 도메인
+- 회원가입/로그인/로그아웃, 이메일·채널명 중복 체크
+- JWT Access/Refresh 쿠키 기반 인증 및 재발급 플로우
+- 채널 정보 조회/수정, 소프트 삭제 처리
+- 프로필/배너 이미지 S3 URL 연동
 
-## 🚀 서비스 목표
-새로운 형태의 디지털 공동체 경험을 통해 사용자들이 물리적 거리를 넘어 함께 영상을 즐기고 소통할 수 있는 플랫폼을 제공합니다.
-
+### ✔ 해결한 문제
+- 인증 상태 유지를 위해 **Stateless JWT + 쿠키 저장 방식** 도입
+- 채널명 중복 방지 및 소프트 삭제 회원의 재가입 처리
 
 ---
 
+## 2️⃣ Together(같이보기) 도메인
+- 방 생성/검색/참여/삭제, 공개/비공개 + 참여 코드(UUID) 기반 입장
+- 방장 권한 제어 (제목/영상/인원/공개 여부 변경)
+- 참여자 관리 (입장/퇴장/강퇴, 인원 수 동기화)
 
-### ✔️Front-end
+### ✔ 해결한 문제
+- 방장 권한에 따른 변경/강퇴 로직 분리로 **권한 검증 흐름 명확화**
+- Together/TogetherJoinMember로 **참여 상태와 이력 분리**
 
-![Vue.js](https://img.shields.io/badge/vue.js-%2335495e.svg?style=for-the-badge&logo=vuedotjs&logoColor=%234FC08D)
-![Socket.js](https://img.shields.io/badge/Socket.js-black?style=for-the-badge&logo=socket.io&logoColor=white)
-![pinia](https://img.shields.io/badge/Pinia-ffd859?style=for-the-badge&logoColor=black)
-![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
-![Axios](https://img.shields.io/badge/axios-671ddf?&style=for-the-badge&logo=axios&logoColor=white)
-![HTML](https://img.shields.io/badge/HTML-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS](https://img.shields.io/badge/CSS-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+---
 
+## 3️⃣ WebSocket 실시간 채팅/동기화
+- STOMP 기반 채팅 메시지 발행/구독
+- 방장 재생 제어/영상 이동 이벤트 브로드캐스트
+- 접속자 수 추적 및 입장 알림
 
-### ✔️Back-end
+---
 
+## 🧩 Together 실시간 흐름 (시퀀스/아키텍처)
+- STOMP 메시지 발행/구독 경로 및 이벤트 흐름 정리
+- 방장 제어 이벤트와 일반 채팅 이벤트의 분리 구조 강조
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Gateway
+    participant Auth
+    participant WS as WebSocket(STOMP)
+    participant TogetherSvc as TogetherService
+    participant Room as TogetherRoom
+
+    Client->>Gateway: 1. 방 입장 요청 (HTTP)
+    Gateway->>Auth: 2. JWT 검증
+    Auth-->>Gateway: 3. 인증 결과
+    Gateway-->>Client: 4. 입장 응답
+
+    Client->>WS: 5. STOMP CONNECT/SUBSCRIBE (/topic/together/{id})
+    WS->>TogetherSvc: 6. 구독 이벤트 처리
+    TogetherSvc->>Room: 7. 입장 처리 + 인원 업데이트
+    TogetherSvc-->>WS: 8. 입장 알림 브로드캐스트
+    WS-->>Client: 9. 입장 알림 수신
+
+    Client->>WS: 10. 채팅 메시지 발행 (/app/together/{id})
+    WS->>TogetherSvc: 11. 메시지 처리
+    TogetherSvc-->>WS: 12. 채팅 브로드캐스트
+    WS-->>Client: 13. 채팅 수신
+
+    Client->>WS: 14. 방장 제어 발행 (/app/master/control/together/{id})
+    WS->>TogetherSvc: 15. 방장 권한 검증
+    TogetherSvc-->>WS: 16. 제어 이벤트 브로드캐스트
+    WS-->>Client: 17. 재생 제어 수신
+```
+
+---
+
+## 🔐 Member 인증 플로우 (로그인/JWT 재발급)
+- 로그인 성공 시 Access/Refresh 쿠키 발급
+- Access 만료 시 Refresh로 재발급 후 재요청
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Auth as JwtAuthFilter
+
+    Client->>API: 1. 로그인 요청
+    API-->>Client: 2. Access/Refresh 쿠키 발급
+
+    Client->>API: 3. 인증 필요 요청
+    API->>Auth: 4. Access 검증
+    alt Access 유효
+        Auth-->>API: 인증 성공
+        API-->>Client: 5. 정상 응답
+    else Access 만료
+        Auth->>Auth: Refresh 검증
+        alt Refresh 유효
+            Auth-->>Client: 6. 새 Access/Refresh 쿠키 발급
+        else Refresh 만료
+            Auth-->>Client: 7. 재로그인 요구
+        end
+    end
+```
+
+---
+
+## 🛠 기술 스택
+### ✔️ Back-end
 ![Java](https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-6DB33F?style=for-the-badge&logo=Spring%20Boot&logoColor=yellow)
 ![Spring Security](https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=Spring%20Security&logoColor=green)
@@ -110,27 +176,16 @@
 ![Lombok](https://img.shields.io/badge/Lombok-BC4125?style=for-the-badge&logoColor=white)
 ![Google OAuth](https://img.shields.io/badge/Google%20OAuth-4285F4?style=for-the-badge&logo=google&logoColor=white)
 
-### ✔️DB
+### ✔️ DB
 ![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white)
-### ✔️Infra
+
+### ✔️ Infra
 ![AWS S3](https://img.shields.io/badge/Amazon%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
 ![AWS Lambda](https://img.shields.io/badge/AWS%20Lambda-FF9900?style=for-the-badge&logo=aws-lambda&logoColor=white)
 ![AWS EC2](https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)
 ![AWS API GateWay](https://img.shields.io/badge/AWS%20APIGateWay-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)
 ![AWS RDS](https://img.shields.io/badge/AWS%20RDS-FF9900?style=for-the-badge&logo=amazon-ec2&logoColor=white)
+
 ---
 
-## 🔧 기술적 선택과 설계 배경
-### 왜 이런 기술들을 선택했나요?
-- **Spring Boot**:
-- **Kafka**:
-- **MSA (Eureka, OpenFeign)**: 확장성과 유지보수성을 위해
-
-### 주요 설계 결정
-1. **아키텍처 패턴**: MVC 패턴 선택 이유
-2. **데이터베이스 설계**:
-3. **보안**: JWT + Spring Security 조합 이유
-4. ex
-5.
----
-  
+# 👋 문의 또는 코드 리뷰 환영합니다!
