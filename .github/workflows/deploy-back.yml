@@ -1,0 +1,49 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew bootJar -x test
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create target directory on EC2
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} "mkdir -p ~/CorebridgeBe/dabom/build/libs"
+
+      - name: Copy JAR to EC2
+        run: |
+          scp -i ~/.ssh/id_rsa build/libs/*.jar ubuntu@${{ secrets.EC2_HOST }}:~/CorebridgeBe/dabom/build/libs/
+
+      - name: Deploy on EC2
+        run: |
+          ssh -i ~/.ssh/id_rsa ubuntu@${{ secrets.EC2_HOST }} "
+            cd ~/CorebridgeBe
+            sudo docker compose stop dabom-app
+            sudo docker compose rm -f dabom-app
+            sudo docker compose up -d dabom-app
+            echo 'Deploy complete!'
+          "

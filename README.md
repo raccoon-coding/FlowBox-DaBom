@@ -30,7 +30,7 @@
 
 ---
 ## 💚 Front-end
-<a href="https://www.dabomvideo.kro.kr">프론트 주소</a>
+<a href="https://www.dabom.net">프론트 주소</a>
 ##  📜소프트웨어 아키텍처
 <a href="https://github.com/beyond-sw-camp/be17-3rd-FlowBox-DaBom/wiki/%EC%86%8C%ED%94%84%ED%8A%B8%EC%9B%A8%EC%96%B4-%EC%95%84%ED%82%A4%ED%85%8D%EC%B3%90">소프트웨어 아키텍쳐</a>
 
@@ -46,120 +46,100 @@
 ---
 
 ### 핵심 기여 (담당 도메인 중심)
-**인증/인가 (Member)**
-- JWT + Refresh Token 구조로 전환해 세션 저장소 의존도를 제거
-- **HTTP-Only Cookie** 저장 방식으로 보안 강화
-- Access/Refresh가 함께 전달되는 특성을 활용해 **재발급 통신 단축**
+**플레이리스트 (Playlist)**
+- 플레이리스트 CRUD 및 영상 추가/중복 방지 구현
+- 모든 작업에 **소유권 검증**을 적용해 타인의 플레이리스트 접근 차단
+- `PlaylistItem` 연관 엔티티로 영상-플레이리스트 관계 분리 관리
 
-<img src="images/Dabom%20Login.gif" width="700" alt="Dabom Login GIF"/>
-
-**실시간 같이보기 (Together)**
-- STOMP 기반 WebSocket에서 **채팅/제어 이벤트를 분리 구독**하도록 설계
-- 방장 제어 이벤트가 모든 시청자에게 동기화되도록 처리
-
-<img src="images/Dabom%20Together.gif" width="700" alt="Dabom Together GIF"/>
+**영상 댓글 (VideoComment)**
+- 댓글 등록/수정/소프트 삭제 및 **최신순·오래된순·인기순** 정렬 조회 구현
+- **Slice 기반 페이지네이션**으로 무한 스크롤 방식 응답 최적화
+- 좋아요 연동(`Likes` 엔티티)으로 인기순 정렬 및 카운트 증감 처리
 
 ### 성과
-- 인증/인가 플로우를 단순화해 **보안성과 효율성 동시 확보**
-- N+1 개선 및 반정규화로 **응답 시간 약 20% 감소**
-- 구독 분리로 **실시간 서비스 안정성** 강화
+- 소유권 검증 일원화로 **권한 누락 없는 접근 제어** 달성
+- Slice 페이지네이션으로 **불필요한 COUNT 쿼리 제거** 및 응답 최적화
+- 소프트 삭제 적용으로 **댓글 데이터 무결성** 유지
 
 ---
 # 🌱 제가 담당한 핵심 개발 영역 (Backend)
 
-## 1️⃣ Member 도메인
-- 회원가입/로그인/로그아웃, 이메일·채널명 중복 체크
-- JWT Access/Refresh 쿠키 기반 인증 및 재발급 플로우
-- 채널 정보 조회/수정, 소프트 삭제 처리
-- 프로필/배너 이미지 S3 URL 연동
+## 1️⃣ Playlist 도메인
+- 플레이리스트 생성/목록 조회/상세 조회/제목 수정/삭제
+- 플레이리스트에 영상 추가 (중복 여부 `existsByPlaylistAndVideo` 로 사전 검증)
+- 모든 작업에 소유권 검증 적용 (본인 플레이리스트만 수정·삭제·조회 가능)
+- 삭제 시 연관 `PlaylistItem` 일괄 삭제 처리
 
 ### ✔ 해결한 문제
-- 인증 상태 유지를 위해 **Stateless JWT + 쿠키 저장 방식** 도입
-- 채널명 중복 방지 및 소프트 삭제 회원의 재가입 처리
+- 동일 영상 중복 추가 시도 → `existsByPlaylistAndVideo` 로 **409 Conflict** 사전 차단
+- 타인의 플레이리스트 접근 → 소유권 검증 후 **권한 없음 예외** 발생
 
 ---
 
-## 2️⃣ Together(같이보기) 도메인
-- 방 생성/검색/참여/삭제, 공개/비공개 + 참여 코드(UUID) 기반 입장
-- 방장 권한 제어 (제목/영상/인원/공개 여부 변경)
-- 참여자 관리 (입장/퇴장/강퇴, 인원 수 동기화)
+## 2️⃣ VideoComment(영상 댓글) 도메인
+- 댓글 등록/수정/소프트 삭제 (`isDeleted = true` 방식)
+- 댓글 목록 **Slice 기반 페이지네이션** (최신순·오래된순·인기순 정렬 선택)
+- `Likes` 엔티티와 연동한 좋아요 카운트 증감 처리
+- 댓글 작성자 프로필 이미지 S3 URL 연동 (조회 실패 시 기본 이미지 fallback)
 
 ### ✔ 해결한 문제
-- 방장 권한에 따른 변경/강퇴 로직 분리로 **권한 검증 흐름 명확화**
-- Together/TogetherJoinMember로 **참여 상태와 이력 분리**
+- 대용량 댓글 목록 응답 → **Slice 페이징**으로 COUNT 쿼리 없이 무한 스크롤 구현
+- 삭제된 댓글 노출 방지 → `findByVideo_IdxAndIsDeletedFalse` 로 **소프트 삭제 필터링**
 
 ---
 
-## 3️⃣ WebSocket 실시간 채팅/동기화
-- STOMP 기반 채팅 메시지 발행/구독
-- 방장 재생 제어/영상 이동 이벤트 브로드캐스트
-- 접속자 수 추적 및 입장 알림
-
----
-
-## 🧩 Together 실시간 흐름 (시퀀스/아키텍처)
-- STOMP 메시지 발행/구독 경로 및 이벤트 흐름 정리
-- 방장 제어 이벤트와 일반 채팅 이벤트의 분리 구조 강조
+## 🧩 Playlist 영상 추가 흐름
 
 ```mermaid
 sequenceDiagram
     participant Client
-    participant Gateway
-    participant Auth
-    participant WS as WebSocket(STOMP)
-    participant TogetherSvc as TogetherService
-    participant Room as TogetherRoom
+    participant API as PlaylistController
+    participant Svc as PlaylistService
+    participant DB
 
-    Client->>Gateway: 1. 방 입장 요청 (HTTP)
-    Gateway->>Auth: 2. JWT 검증
-    Auth-->>Gateway: 3. 인증 결과
-    Gateway-->>Client: 4. 입장 응답
-
-    Client->>WS: 5. STOMP CONNECT/SUBSCRIBE (/topic/together/{id})
-    WS->>TogetherSvc: 6. 구독 이벤트 처리
-    TogetherSvc->>Room: 7. 입장 처리 + 인원 업데이트
-    TogetherSvc-->>WS: 8. 입장 알림 브로드캐스트
-    WS-->>Client: 9. 입장 알림 수신
-
-    Client->>WS: 10. 채팅 메시지 발행 (/app/together/{id})
-    WS->>TogetherSvc: 11. 메시지 처리
-    TogetherSvc-->>WS: 12. 채팅 브로드캐스트
-    WS-->>Client: 13. 채팅 수신
-
-    Client->>WS: 14. 방장 제어 발행 (/app/master/control/together/{id})
-    WS->>TogetherSvc: 15. 방장 권한 검증
-    TogetherSvc-->>WS: 16. 제어 이벤트 브로드캐스트
-    WS-->>Client: 17. 재생 제어 수신
+    Client->>API: POST /api/playlist/add (playlistIdx, videoIdx)
+    API->>Svc: add(dto, memberIdx)
+    Svc->>DB: 플레이리스트 조회 (findById)
+    DB-->>Svc: Playlist 반환
+    Svc->>DB: 영상 조회 (findById)
+    DB-->>Svc: Video 반환
+    Svc->>Svc: 소유권 검증 (playlist.member == memberIdx)
+    alt 권한 없음
+        Svc-->>Client: 403 NO_PERMISSION
+    end
+    Svc->>DB: 중복 검증 (existsByPlaylistAndVideo)
+    alt 이미 존재
+        Svc-->>Client: 409 VIDEO_ALREADY_IN_PLAYLIST
+    end
+    Svc->>DB: PlaylistItem 저장
+    DB-->>Svc: 저장 완료
+    Svc-->>API: 성공
+    API-->>Client: 200 영상 추가 완료
 ```
 
 ---
 
-## 🔐 Member 인증 플로우 (로그인/JWT 재발급)
-- 로그인 성공 시 Access/Refresh 쿠키 발급
-- Access 만료 시 Refresh로 재발급 후 재요청
+## 🧩 VideoComment 댓글 조회 흐름 (정렬 + 페이지네이션)
 
 ```mermaid
 sequenceDiagram
     participant Client
-    participant API
-    participant Auth as JwtAuthFilter
+    participant API as VideoCommentController
+    participant Svc as VideoCommentService
+    participant DB
 
-    Client->>API: 1. 로그인 요청
-    API-->>Client: 2. Access/Refresh 쿠키 발급
-
-    Client->>API: 3. 인증 필요 요청
-    API->>Auth: 4. Access 검증
-    alt Access 유효
-        Auth-->>API: 인증 성공
-        API-->>Client: 5. 정상 응답
-    else Access 만료
-        Auth->>Auth: Refresh 검증
-        alt Refresh 유효
-            Auth-->>Client: 6. 새 Access/Refresh 쿠키 발급
-        else Refresh 만료
-            Auth-->>Client: 7. 재로그인 요구
-        end
+    Client->>API: GET /api/videos/comment/list/{videoIdx}/paged?sort=likes,desc&size=10
+    API->>Svc: list(videoIdx, pageable, memberDetailsDto)
+    Svc->>Svc: pageable.sort에 likes 포함 여부 확인
+    alt 인기순 정렬
+        Svc->>DB: findByVideo_IdxAndIsDeletedFalseOrderByLikesDesc
+    else 최신순/오래된순
+        Svc->>DB: findByVideo_IdxAndIsDeletedFalse
     end
+    DB-->>Svc: Slice<VideoComment> 반환
+    Svc->>Svc: 각 댓글 프로필 이미지 S3 URL 조회 (실패 시 기본 이미지 fallback)
+    Svc-->>API: Slice<VideoCommentResponseDto>
+    API-->>Client: 200 댓글 목록 (hasNext 포함)
 ```
 
 ---

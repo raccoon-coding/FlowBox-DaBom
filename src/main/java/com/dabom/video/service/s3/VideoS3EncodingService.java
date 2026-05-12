@@ -211,6 +211,12 @@ public class VideoS3EncodingService {
             String fileName = localFile.getFileName().toString();
             String s3Key = s3Prefix + fileName;
 
+//            PutObjectRequest putRequest = PutObjectRequest.builder()
+//                    .bucket(bucketName)
+//                    .key(s3Key)
+//                    .contentType(getContentType(fileName))
+//                    .build();
+
             PutObjectRequest putRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(s3Key)

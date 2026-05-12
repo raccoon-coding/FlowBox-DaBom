@@ -44,21 +44,32 @@ public class VideoMetadataController {
                             schema = @Schema(implementation = BaseResponse.class),
                             examples = @ExampleObject(value = SwaggerConstants.VIDEO_METADATA_RESPONSE)))
     })
+//    @PatchMapping("/metadata/{videoIdx}")
+//    public ResponseEntity<BaseResponse<Integer>> uploadData(@PathVariable Integer videoIdx,
+//                                                            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+//                                                                    description = "비디오 메타데이터 정보",
+//                                                                    required = true,
+//                                                                    content = @Content(mediaType = "application/json",
+//                                                                            schema = @Schema(implementation = VideoMetadataRequestDto.class),
+//                                                                            examples = @ExampleObject(value = SwaggerConstants.VIDEO_METADATA_REQUEST)
+//                                                                    )
+//                                                            )
+//                                                            @RequestBody VideoMetadataRequestDto requestDto) throws IOException, InterruptedException {
+//
+//        Integer i = videoService.mappingMetadata(requestDto);
+//
+////        videoS3EncodingService.encode(videoIdx);
+//
+//        return ResponseEntity.ok(BaseResponse.of(i, HttpStatus.OK));
+//    }
+
     @PatchMapping("/metadata/{videoIdx}")
     public ResponseEntity<BaseResponse<Integer>> uploadData(@PathVariable Integer videoIdx,
-                                                            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                                                                    description = "비디오 메타데이터 정보",
-                                                                    required = true,
-                                                                    content = @Content(mediaType = "application/json",
-                                                                            schema = @Schema(implementation = VideoMetadataRequestDto.class),
-                                                                            examples = @ExampleObject(value = SwaggerConstants.VIDEO_METADATA_REQUEST)
-                                                                    )
-                                                            )
                                                             @RequestBody VideoMetadataRequestDto requestDto) throws IOException, InterruptedException {
 
         Integer i = videoService.mappingMetadata(requestDto);
 
-//        videoS3EncodingService.encode(videoIdx);
+        videoS3EncodingService.encode(videoIdx);  // 주석 해제!
 
         return ResponseEntity.ok(BaseResponse.of(i, HttpStatus.OK));
     }

@@ -34,27 +34,6 @@ public class BoardCommentController {
     private final BoardCommentService boardCommentService;
 
 
-    @Operation(
-            summary = "댓글 등록",
-            description = "게시글에 새로운 댓글을 등록하는 기능",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "댓글 등록 요청 데이터",
-                    required = true,
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = BoardCommentCreateRequestDto.class),
-                            examples = @ExampleObject(
-                                    name = "댓글 등록 요청 예시",
-                                    value = BOARD_COMMENT_CREATED_REQUEST
-                            ))))
-    @PostMapping("/create/{boardIdx}")
-    @ApiResponse(responseCode = "200", description = "댓글 등록 성공",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = BaseResponse.class),
-                    examples = @ExampleObject(name = "댓글 등록 성공 응답", value = BOARD_COMMENT_CREATED_RESPONSE
-                    )))
-    @ApiResponse(responseCode = "400", description = "댓글 등록 실패", content = @Content(mediaType = "application/json"))
 
     public ResponseEntity<BaseResponse<Integer>> create(@RequestBody BoardCommentCreateRequestDto dto,
                                                         @PathVariable Integer boardIdx,
